@@ -2,10 +2,8 @@ package de.maxhenkel.voicechat.voice.server;
 
 import de.maxhenkel.voicechat.Voicechat;
 import de.maxhenkel.voicechat.voice.common.*;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.net.BindException;
 import java.net.DatagramSocket;
@@ -22,16 +20,14 @@ public class Server extends Thread {
     private Map<UUID, ClientConnection> connections;
     private Map<UUID, UUID> secrets;
     private int port;
-    private MinecraftServer server;
     private DatagramSocket socket;
     private ProcessThread processThread;
     private BlockingQueue<NetworkMessage> packetQueue;
     private PingManager pingManager;
     private PlayerStateManager playerStateManager;
 
-    public Server(int port, MinecraftServer server) {
+    public Server(int port) {
         this.port = port;
-        this.server = server;
         connections = new HashMap<>();
         secrets = new HashMap<>();
         packetQueue = new LinkedBlockingQueue<>();
@@ -146,7 +142,7 @@ public class Server extends Thread {
 
                     if (message.getPacket() instanceof MicPacket) {
                         MicPacket packet = (MicPacket) message.getPacket();
-                        ServerPlayer player = server.getPlayerList().getPlayer(playerUUID);
+                        Player player = Bukkit.getPlayer(playerUUID);
                         if (player == null) {
                             continue;
                         }
@@ -191,26 +187,14 @@ public class Server extends Thread {
 
     private void processProximityPacket(Player player, MicPacket packet) throws Exception {
         double distance = Voicechat.SERVER_CONFIG.voiceChatDistance.get();
-        List<ClientConnection> closeConnections = player.level
-                .getEntitiesOfClass(
-                        Player.class,
-                        new AABB(
-                                player.getX() - distance,
-                                player.getY() - distance,
-                                player.getZ() - distance,
-                                player.getX() + distance,
-                                player.getY() + distance,
-                                player.getZ() + distance
-                        )
-                        , playerEntity -> !playerEntity.getUUID().equals(player.getUUID())
-                )
-                .stream()
-                .map(playerEntity -> connections.get(playerEntity.getUUID()))
-                .filter(Objects::nonNull)
+        List<ClientConnection> closeConnections = player.getWorld().getPlayers().stream()
+                .filter(p -> { return !p.getUniqueId().equals(player.getUniqueId()) &&
+                        player.getLocation().distanceSquared(p.getLocation()) <= distance*distance; })
+                .map(p -> connections.get(p.getUniqueId()))
                 .collect(Collectors.toList());
-        NetworkMessage soundMessage = new NetworkMessage(new SoundPacket(player.getUUID(), packet.getData(), packet.getSequenceNumber()));
+        NetworkMessage soundMessage = new NetworkMessage(new SoundPacket(player.getUniqueId(), packet.getData(), packet.getSequenceNumber()));
         for (ClientConnection clientConnection : closeConnections) {
-            if (!clientConnection.getPlayerUUID().equals(player.getUUID())) {
+            if (!clientConnection.getPlayerUUID().equals(player.getUniqueId())) {
                 clientConnection.send(this, soundMessage);
             }
         }
@@ -231,12 +215,12 @@ public class Server extends Thread {
         for (UUID uuid : connectionsToDrop) {
             disconnectClient(uuid);
             Voicechat.LOGGER.info("Player {} timed out", uuid);
-            ServerPlayer player = server.getPlayerList().getPlayer(uuid);
+            Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
-                Voicechat.LOGGER.info("Reconnecting player {}", player.getDisplayName().getString());
+                Voicechat.LOGGER.info("Reconnecting player {}", player.displayName());
                 Voicechat.SERVER.initializePlayerConnection(player);
             } else {
-                Voicechat.LOGGER.warn("Reconnecting player {} failed (Could not find player)", player.getDisplayName().getString());
+                Voicechat.LOGGER.warn("Reconnecting player {} failed (Could not find player)", player.displayName());
             }
         }
     }

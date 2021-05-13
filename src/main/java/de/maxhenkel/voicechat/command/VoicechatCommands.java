@@ -18,8 +18,13 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.*;
 import net.minecraft.server.level.ServerPlayer;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-public class VoicechatCommands {
+public class VoicechatCommands implements CommandExecutor {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, boolean dedicated) {
         LiteralArgumentBuilder<CommandSourceStack> literalBuilder = Commands.literal("voicechat");
@@ -123,4 +128,11 @@ public class VoicechatCommands {
         dispatcher.register(literalBuilder);
     }
 
+    @Override
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if(!(sender instanceof Player)) {
+            return true;
+        }
+
+    }
 }

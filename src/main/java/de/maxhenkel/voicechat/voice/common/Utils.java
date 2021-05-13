@@ -116,39 +116,6 @@ public class Utils {
         return stereo;
     }
 
-    @Environment(EnvType.CLIENT)
-    public static Pair<Float, Float> getStereoVolume(Minecraft minecraft, Vec3 soundPos, double voiceChatDistance) {
-        Player player = minecraft.player;
-        Vec3 playerPos = player.position();
-        Vec3 d = soundPos.subtract(playerPos).normalize();
-        Vec2 diff = new Vec2((float) d.x, (float) d.z);
-        float diffAngle = angle(diff, new Vec2(-1F, 0F));
-        float angle = normalizeAngle(diffAngle - (player.yRot % 360F));
-        float dif = (float) (Math.abs(playerPos.y - soundPos.y) / voiceChatDistance);
-
-        float rot = angle / 180F;
-        float perc = rot;
-        if (rot < -0.5F) {
-            perc = -(0.5F + (rot + 0.5F));
-        } else if (rot > 0.5F) {
-            perc = 0.5F - (rot - 0.5F);
-        }
-        perc = perc * (1 - dif);
-
-        float left = perc < 0F ? Math.abs(perc * 1.4F) + 0.3F : 0.3F;
-        float right = perc >= 0F ? (perc * 1.4F) + 0.3F : 0.3F;
-
-        float fill = 1F - Math.max(left, right);
-        left += fill;
-        right += fill;
-
-        if (minecraft.options.getCameraType().equals(CameraType.THIRD_PERSON_FRONT)) {
-            return new ImmutablePair<>(right, left);
-        }
-
-        return new ImmutablePair<>(left, right);
-    }
-
     private static float normalizeAngle(float angle) {
         angle = angle % 360F;
         if (angle <= -180F) {

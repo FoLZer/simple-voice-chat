@@ -1,28 +1,30 @@
 package de.maxhenkel.voicechat;
 
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
+import de.maxhenkel.voicechat.api.ResourceLocation;
 import de.maxhenkel.voicechat.command.VoicechatCommands;
 import de.maxhenkel.voicechat.config.ConfigBuilder;
 import de.maxhenkel.voicechat.config.ServerConfig;
 import de.maxhenkel.voicechat.voice.server.ServerVoiceEvents;
-import io.netty.buffer.Unpooled;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.dedicated.DedicatedServer;
+import net.kyori.adventure.text.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-public class Voicechat implements ModInitializer {
+public class Voicechat extends JavaPlugin {
 
     public static final String MODID = "voicechat";
     public static final Logger LOGGER = LogManager.getLogger(MODID);
@@ -36,7 +38,7 @@ public class Voicechat implements ModInitializer {
     public static final Pattern GROUP_REGEX = Pattern.compile("^[a-zA-Z0-9-_]{1,16}$");
 
     @Override
-    public void onInitialize() {
+    public void onEnable() {
         try {
             InputStream in = getClass().getClassLoader().getResourceAsStream("compatibility.properties");
             Properties props = new Properties();
@@ -46,34 +48,38 @@ public class Voicechat implements ModInitializer {
         } catch (Exception e) {
             LOGGER.error("Failed to read compatibility version");
         }
+        ConfigBuilder.create(getDataFolder().toPath().resolve("config").resolve(MODID).resolve("voicechat-server.properties"), builder -> SERVER_CONFIG = new ServerConfig(builder));
 
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
-            if (server instanceof DedicatedServer) {
-                ConfigBuilder.create(server.getServerDirectory().toPath().resolve("config").resolve(MODID).resolve("voicechat-server.properties"), builder -> SERVER_CONFIG = new ServerConfig(builder));
+        INIT.registerIncomingChannel(this, new PluginMessageListener() {
+            @Override
+            public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
+                ByteArrayDataInput in = ByteStreams.newDataInput(message);
+                int clientCompatibilityVersion = in.readInt();
+
+                if (clientCompatibilityVersion != Voicechat.COMPATIBILITY_VERSION) {
+                    Voicechat.LOGGER.warn("Client {} has incompatible voice chat version (server={}, client={})", player.getAddress().getAddress().getHostAddress(), Voicechat.COMPATIBILITY_VERSION, clientCompatibilityVersion);
+                    player.kick(Component.translatable("message.voicechat.incompatible_version"));
+                }
             }
         });
-
-        ServerLoginConnectionEvents.QUERY_START.register((handler, server, sender, synchronizer) -> {
-            FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
-            buffer.writeInt(COMPATIBILITY_VERSION);
-            sender.sendPacket(INIT, buffer);
-        });
-        ServerLoginNetworking.registerGlobalReceiver(INIT, (server, handler, understood, buf, synchronizer, responseSender) -> {
-            if (!understood) {
-                //Let vanilla clients pass, but not incompatible voice chat clients
-                return;
+        INIT.registerOutgoingChannel(this);
+        class QUERY_START implements Listener {
+            Voicechat main;
+            public QUERY_START(Voicechat main) {
+                this.main = main;
             }
-
-            int clientCompatibilityVersion = buf.readInt();
-
-            if (clientCompatibilityVersion != Voicechat.COMPATIBILITY_VERSION) {
-                Voicechat.LOGGER.warn("Client {} has incompatible voice chat version (server={}, client={})", handler.connection.getRemoteAddress(), Voicechat.COMPATIBILITY_VERSION, clientCompatibilityVersion);
-                handler.disconnect(new TranslatableComponent("message.voicechat.incompatible_version"));
+            @EventHandler
+            public void onLogin(PlayerLoginEvent e) {
+                ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                out.writeInt(COMPATIBILITY_VERSION);
+                e.getPlayer().sendPluginMessage(main, INIT.toString(), out.toByteArray());
             }
-        });
+        }
+        getServer().getPluginManager().registerEvents(new QUERY_START(this), this);
 
         SERVER = new ServerVoiceEvents();
 
-        CommandRegistrationCallback.EVENT.register(VoicechatCommands::register);
+        //CommandRegistrationCallback.EVENT.register(VoicechatCommands::register);
+        getCommand("voicechat").setExecutor(new VoicechatCommands());
     }
 }
