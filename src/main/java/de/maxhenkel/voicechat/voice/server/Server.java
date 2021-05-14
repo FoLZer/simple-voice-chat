@@ -26,13 +26,13 @@ public class Server extends Thread {
     private PingManager pingManager;
     private PlayerStateManager playerStateManager;
 
-    public Server(int port) {
+    public Server(Voicechat main, int port) {
         this.port = port;
         connections = new HashMap<>();
         secrets = new HashMap<>();
         packetQueue = new LinkedBlockingQueue<>();
         pingManager = new PingManager(this);
-        playerStateManager = new PlayerStateManager();
+        playerStateManager = new PlayerStateManager(main);
         setDaemon(true);
         setName("VoiceChatServerThread");
         processThread = new ProcessThread();

@@ -64,8 +64,8 @@ public class Voicechat extends JavaPlugin {
         });
         INIT.registerOutgoingChannel(this);
         class QUERY_START implements Listener {
-            Voicechat main;
-            public QUERY_START(Voicechat main) {
+            final Voicechat main;
+            QUERY_START(Voicechat main) {
                 this.main = main;
             }
             @EventHandler
@@ -77,9 +77,9 @@ public class Voicechat extends JavaPlugin {
         }
         getServer().getPluginManager().registerEvents(new QUERY_START(this), this);
 
-        SERVER = new ServerVoiceEvents();
+        SERVER = new ServerVoiceEvents(this);
 
         //CommandRegistrationCallback.EVENT.register(VoicechatCommands::register);
-        getCommand("voicechat").setExecutor(new VoicechatCommands());
+        //getCommand("voicechat").setExecutor(new VoicechatCommands());
     }
 }

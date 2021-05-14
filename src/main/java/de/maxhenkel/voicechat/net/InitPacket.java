@@ -4,7 +4,6 @@ import de.maxhenkel.voicechat.Voicechat;
 import de.maxhenkel.voicechat.api.ResourceLocation;
 import de.maxhenkel.voicechat.config.ServerConfig;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.UUID;
 

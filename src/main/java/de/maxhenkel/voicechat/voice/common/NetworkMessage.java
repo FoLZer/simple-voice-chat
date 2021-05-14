@@ -1,6 +1,5 @@
 package de.maxhenkel.voicechat.voice.common;
 
-import de.maxhenkel.voicechat.voice.client.Client;
 import de.maxhenkel.voicechat.voice.server.ClientConnection;
 import de.maxhenkel.voicechat.voice.server.Server;
 import io.netty.buffer.Unpooled;
@@ -67,14 +66,6 @@ public class NetworkMessage {
         packetRegistry.put((byte) 5, KeepAlivePacket.class);
     }
 
-    public static NetworkMessage readPacketClient(DatagramSocket socket, Client client) throws IllegalAccessException, InstantiationException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        DatagramPacket packet = new DatagramPacket(new byte[4096], 4096);
-        socket.receive(packet);
-        byte[] data = new byte[packet.getLength()];
-        System.arraycopy(packet.getData(), packet.getOffset(), data, 0, packet.getLength());
-        return readFromBytes(packet.getSocketAddress(), client.getSecret(), data);
-    }
-
     public static NetworkMessage readPacketServer(DatagramSocket socket, Server server) throws IllegalAccessException, InstantiationException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         DatagramPacket packet = new DatagramPacket(new byte[4096], 4096);
         socket.receive(packet);
@@ -119,14 +110,6 @@ public class NetworkMessage {
             }
         }
         return -1;
-    }
-
-    public byte[] writeClient(Client client) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        byte[] payload = write(client.getSecret());
-        FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer(payload.length + 32));
-        buffer.writeUUID(client.getPlayerUUID());
-        buffer.writeByteArray(payload);
-        return buffer.array();
     }
 
     public byte[] write(UUID secret) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {

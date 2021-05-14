@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class VoicechatCommands implements CommandExecutor {
 
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher, boolean dedicated) {
+    /*public static void register(CommandDispatcher<CommandSourceStack> dispatcher, boolean dedicated) {
         LiteralArgumentBuilder<CommandSourceStack> literalBuilder = Commands.literal("voicechat");
 
         literalBuilder.then(Commands.literal("test").requires((commandSource) -> commandSource.hasPermission(2)).then(Commands.argument("target", EntityArgument.player()).executes((commandSource) -> {
@@ -126,13 +126,13 @@ public class VoicechatCommands implements CommandExecutor {
         })));
 
         dispatcher.register(literalBuilder);
-    }
+    }*/
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if(!(sender instanceof Player)) {
             return true;
         }
-
+        return true;
     }
 }

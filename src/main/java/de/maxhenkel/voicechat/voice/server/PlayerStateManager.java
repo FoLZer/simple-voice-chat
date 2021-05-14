@@ -1,47 +1,63 @@
 package de.maxhenkel.voicechat.voice.server;
 
-import de.maxhenkel.voicechat.events.PlayerEvents;
+import de.maxhenkel.voicechat.Voicechat;
 import de.maxhenkel.voicechat.net.NetManager;
 import de.maxhenkel.voicechat.net.PlayerStatePacket;
 import de.maxhenkel.voicechat.net.PlayerStatesPacket;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
+import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class PlayerStateManager {
+public class PlayerStateManager implements Listener {
 
     private Map<UUID, PlayerState> states;
 
-    public PlayerStateManager() {
-        states = new HashMap<>();
-        PlayerEvents.PLAYER_LOGGED_OUT.register(this::removePlayer);
-        PlayerEvents.PLAYER_LOGGED_IN.register(this::notifyPlayer);
+    @EventHandler
+    public void loggedOut(PlayerQuitEvent e) {
+        removePlayer(e.getPlayer());
+    }
+    @EventHandler
+    public void loggedIn(PlayerJoinEvent e) {
+        notifyPlayer(e.getPlayer());
+    }
 
-        NetManager.registerServerReceiver(PlayerStatePacket.class, (server, player, handler, responseSender, packet) -> {
+    Voicechat main;
+
+    public PlayerStateManager(Voicechat main) {
+        this.main = main;
+        states = new HashMap<>();
+        main.getServer().getPluginManager().registerEvents(this, main);
+
+        NetManager.registerServerReceiver(main, PlayerStatePacket.class, (player, s, packet) -> {
             PlayerState state = packet.getPlayerState();
-            state.setGameProfile(player.getGameProfile());
-            states.put(player.getUUID(), state);
-            broadcastState(server, state);
+            state.setGameProfile(((CraftPlayer)player).getProfile());
+            states.put(player.getUniqueId(), state);
+            broadcastState(state);
         });
     }
 
-    private void broadcastState(MinecraftServer server, PlayerState state) {
+    private void broadcastState(PlayerState state) {
         PlayerStatePacket packet = new PlayerStatePacket(state);
-        server.getPlayerList().getPlayers().forEach(p -> NetManager.sendToClient(p, packet));
+        Bukkit.getOnlinePlayers().forEach(p -> NetManager.sendToClient(main, p, packet));
     }
 
-    private void notifyPlayer(ServerPlayer player) {
+    private void notifyPlayer(Player player) {
         PlayerStatesPacket packet = new PlayerStatesPacket(states);
-        NetManager.sendToClient(player, packet);
-        broadcastState(player.server, new PlayerState(false, true, player.getGameProfile()));
+        NetManager.sendToClient(main, player, packet);
+        broadcastState(new PlayerState(false, true, ((CraftPlayer)player).getProfile()));
     }
 
-    private void removePlayer(ServerPlayer player) {
-        states.remove(player.getUUID());
-        broadcastState(player.server, new PlayerState(true, true, player.getGameProfile())); //TODO maybe remove
+    private void removePlayer(Player player) {
+        states.remove(player.getUniqueId());
+        broadcastState(new PlayerState(true, true, ((CraftPlayer)player).getProfile())); //TODO maybe remove
     }
 
     @Nullable
