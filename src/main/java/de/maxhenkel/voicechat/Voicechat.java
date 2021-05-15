@@ -9,6 +9,8 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import de.maxhenkel.voicechat.api.FriendlyByteBuf;
 import de.maxhenkel.voicechat.api.ResourceLocation;
+import de.maxhenkel.voicechat.command.VoicechatCommands;
+import de.maxhenkel.voicechat.command.VoicechatCommandsAutocompleter;
 import de.maxhenkel.voicechat.config.ConfigBuilder;
 import de.maxhenkel.voicechat.config.ServerConfig;
 import de.maxhenkel.voicechat.voice.server.ServerVoiceEvents;
@@ -103,6 +105,7 @@ public class Voicechat extends JavaPlugin {
         SERVER = new ServerVoiceEvents(this);
 
         //CommandRegistrationCallback.EVENT.register(VoicechatCommands::register);
-        //getCommand("voicechat").setExecutor(new VoicechatCommands());
+        getCommand("voicechat").setExecutor(new VoicechatCommands(this));
+        getCommand("voicechat").setTabCompleter(new VoicechatCommandsAutocompleter());
     }
 }

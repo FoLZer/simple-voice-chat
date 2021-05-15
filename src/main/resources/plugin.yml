@@ -2,5 +2,9 @@ name: VoiceChatPlugin
 main: de.maxhenkel.voicechat.Voicechat
 version: 1.0
 api-version: 1.16
+commands:
+  voicechat:
+    description: All-in-one command for voicechat
+    usage: "/voicechat"
 depend:
   - ProtocolLib
