@@ -34,14 +34,15 @@ public class PlayerStateManager implements Listener {
     public PlayerStateManager(Voicechat main) {
         this.main = main;
         states = new HashMap<>();
-        main.getServer().getPluginManager().registerEvents(this, main);
-
+        PlayerStatesPacket.PLAYER_STATES.registerOutgoingChannel(main);
         NetManager.registerServerReceiver(main, PlayerStatePacket.class, (player, s, packet) -> {
             PlayerState state = packet.getPlayerState();
             state.setGameProfile(((CraftPlayer)player).getProfile());
             states.put(player.getUniqueId(), state);
             broadcastState(state);
         });
+
+        main.getServer().getPluginManager().registerEvents(this, main);
     }
 
     private void broadcastState(PlayerState state) {

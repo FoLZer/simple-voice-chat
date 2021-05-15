@@ -1,0 +1,6 @@
+name: VoiceChatPlugin
+main: de.maxhenkel.voicechat.Voicechat
+version: 1.0
+api-version: 1.16
+depend:
+  - ProtocolLib

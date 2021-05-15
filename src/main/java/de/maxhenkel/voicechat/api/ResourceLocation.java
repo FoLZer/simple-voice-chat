@@ -12,10 +12,12 @@ public class ResourceLocation {
     }
 
     public void registerIncomingChannel(Voicechat main, PluginMessageListener listener) {
+        Voicechat.LOGGER.info("Registered incoming bukkit channel : {}", toString());
         main.getServer().getMessenger().registerIncomingPluginChannel(main, toString(), listener);
     }
 
     public void registerOutgoingChannel(Voicechat main) {
+        Voicechat.LOGGER.info("Registered outgoing bukkit channel : {}", toString());
         main.getServer().getMessenger().registerOutgoingPluginChannel(main, toString());
     }
 

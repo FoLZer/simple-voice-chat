@@ -30,6 +30,7 @@ public class ServerVoiceEvents implements Listener{
     public ServerVoiceEvents(Voicechat main) {
         this.main = main;
         serverStarting();
+        InitPacket.SECRET.registerOutgoingChannel(main);
         main.getServer().getPluginManager().registerEvents(this, main);
     }
 

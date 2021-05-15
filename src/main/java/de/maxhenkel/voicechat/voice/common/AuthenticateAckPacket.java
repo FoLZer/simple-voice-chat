@@ -1,6 +1,6 @@
 package de.maxhenkel.voicechat.voice.common;
 
-import net.minecraft.network.FriendlyByteBuf;
+import de.maxhenkel.voicechat.api.FriendlyByteBuf;
 
 public class AuthenticateAckPacket implements Packet<AuthenticateAckPacket> {
 

@@ -1,9 +1,9 @@
 package de.maxhenkel.voicechat.net;
 
 import de.maxhenkel.voicechat.Voicechat;
+import de.maxhenkel.voicechat.api.FriendlyByteBuf;
 import de.maxhenkel.voicechat.api.ResourceLocation;
 import de.maxhenkel.voicechat.config.ServerConfig;
-import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.UUID;
 

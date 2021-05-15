@@ -4,11 +4,12 @@ plugins {
 }
 
 dependencies {
-    //compileOnly "com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT"
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.14.1'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
     compile 'com.google.code.findbugs:jsr305:3.0.2'
-    compile files('src/main/java/de/maxhenkel/voicechat/api/paper-1.16.5.jar', 'src/main/java/de/maxhenkel/voicechat/api/minecraft-1.16.5-mapped.jar')
+    compile files('/src/main/java/de/maxhenkel/voicechat/api/paper-1.16.5.jar')
+    compile 'org.apache.commons:commons-lang3:3.6'
+    compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.6.0"
 
     compile 'de.maxhenkel.opus4j:opus4j:1.0.0'
     shadow 'de.maxhenkel.opus4j:opus4j:1.0.0'
@@ -21,4 +22,5 @@ repositories {
         name = "henkelmax.public"
         url = 'https://maven.maxhenkel.de/repository/public'
     }
+    maven { url "https://repo.dmulloy2.net/repository/public/" }
 }

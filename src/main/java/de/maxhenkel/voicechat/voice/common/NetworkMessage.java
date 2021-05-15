@@ -1,9 +1,9 @@
 package de.maxhenkel.voicechat.voice.common;
 
+import de.maxhenkel.voicechat.api.FriendlyByteBuf;
 import de.maxhenkel.voicechat.voice.server.ClientConnection;
 import de.maxhenkel.voicechat.voice.server.Server;
 import io.netty.buffer.Unpooled;
-import net.minecraft.network.FriendlyByteBuf;
 
 import javax.annotation.Nonnull;
 import javax.crypto.BadPaddingException;

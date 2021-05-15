@@ -1,9 +1,9 @@
 package de.maxhenkel.voicechat.voice.common;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.network.FriendlyByteBuf;
+import de.maxhenkel.voicechat.api.FriendlyByteBuf;
+import de.maxhenkel.voicechat.api.NbtTags.CompoundTag;
+import de.maxhenkel.voicechat.api.NbtTags.NbtUtils;
 
 import javax.annotation.Nullable;
 
