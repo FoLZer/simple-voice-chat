@@ -30,7 +30,7 @@ public class PlayerJoinListener implements Listener {
                 packetDataSerializer.writeInt(buf.readableBytes());
                 packetDataSerializer.writeBytes(buf);
                 packet.getModifier().withType(PacketDataSerializer.class).write(0, packetDataSerializer);
-                Voicechat.PROTOCOL_MANAGER.sendServerPacket(e.getPlayer(), packet);
+                Voicechat.sendPacket(main, e.getPlayer(), packet);
             } catch(Exception ex) {
                 ex.printStackTrace();
             }
